@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title><%= title %></title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .navbar-brand {
+            font-weight: bold;
+        }
+        .security-badge {
+            background: linear-gradient(45deg, #28a745, #20c997);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-size: 0.875rem;
+            margin-left: 1rem;
+        }
+        .feature-card {
+            transition: transform 0.3s ease;
+            border: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+        .hero-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 4rem 0;
+        }
+        .footer {
+            background-color: #343a40;
+            color: white;
+            padding: 2rem 0;
+            margin-top: auto;
+        }
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        main {
+            flex: 1;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-shield-alt"></i> SecureBank
+            </a>
+            <span class="security-badge">
+                <i class="fas fa-lock"></i> Secure
+            </span>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <% if (user) { %>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-user"></i> <%= user.firstName || user.username %>
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="/dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                                <li><a class="dropdown-item" href="/profile"><i class="fas fa-user-cog"></i> Profile</a></li>
+                                <li><a class="dropdown-item" href="/transactions"><i class="fas fa-exchange-alt"></i> Transactions</a></li>
+                                <li><a class="dropdown-item" href="/security"><i class="fas fa-shield-alt"></i> Security</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="/logout"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                            </ul>
+                        </li>
+                    <% } else { %>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/login">
+                                <i class="fas fa-sign-in-alt"></i> Login
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/register">
+                                <i class="fas fa-user-plus"></i> Register
+                            </a>
+                        </li>
+                    <% } %>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <%- body %>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5><i class="fas fa-shield-alt"></i> SecureBank</h5>
+                    <p>Your security is our priority. Built with industry-leading security practices.</p>
+                </div>
+                <div class="col-md-6">
+                    <h6>Security Features</h6>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-check text-success"></i> Multi-Factor Authentication</li>
+                        <li><i class="fas fa-check text-success"></i> End-to-End Encryption</li>
+                        <li><i class="fas fa-check text-success"></i> Real-time Fraud Detection</li>
+                        <li><i class="fas fa-check text-success"></i> Comprehensive Audit Logging</li>
+                    </ul>
+                </div>
+            </div>
+            <hr>
+            <div class="text-center">
+                <p>&copy; 2025 SecureBank. All rights reserved. | Built for Security Assignment</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

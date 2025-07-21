@@ -1,0 +1,230 @@
+<div class="hero-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold mb-4">
+                    <i class="fas fa-shield-alt"></i> Secure Banking Application
+                </h1>
+                <p class="lead mb-4">
+                    Experience banking with enterprise-grade security. Our application implements multiple layers of protection 
+                    including Multi-Factor Authentication, Role-Based Access Control, and real-time fraud detection.
+                </p>
+                <% if (!user) { %>
+                    <div class="d-flex gap-3">
+                        <a href="/register" class="btn btn-primary btn-lg">
+                            <i class="fas fa-user-plus"></i> Get Started
+                        </a>
+                        <a href="/login" class="btn btn-outline-light btn-lg">
+                            <i class="fas fa-sign-in-alt"></i> Login
+                        </a>
+                    </div>
+                <% } else { %>
+                    <div class="d-flex gap-3">
+                        <a href="/dashboard" class="btn btn-primary btn-lg">
+                            <i class="fas fa-tachometer-alt"></i> Go to Dashboard
+                        </a>
+                    </div>
+                <% } %>
+            </div>
+            <div class="col-lg-6">
+                <div class="text-center">
+                    <i class="fas fa-university display-1 mb-3" style="opacity: 0.7;"></i>
+                    <h3>Built for Security Assignment</h3>
+                    <p>Demonstrating comprehensive security measures in modern web applications</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container my-5">
+    <% if (user) { %>
+        <!-- Welcome Section for Logged In Users -->
+        <div class="row mb-5">
+            <div class="col-12">
+                <div class="alert alert-success" role="alert">
+                    <h4 class="alert-heading">
+                        <i class="fas fa-check-circle"></i> Welcome back, <%= user.firstName || user.username %>!
+                    </h4>
+                    <p>Your account is secure and all systems are operational.</p>
+                    <hr>
+                    <p class="mb-0">Last login: <strong>Just now</strong> | Account: <strong><%= user.accountNumber %></strong></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="row mb-5">
+            <div class="col-12">
+                <h2 class="text-center mb-4">Quick Actions</h2>
+            </div>
+            <div class="col-md-3 mb-3">
+                <a href="/dashboard" class="text-decoration-none">
+                    <div class="card feature-card text-center h-100">
+                        <div class="card-body">
+                            <i class="fas fa-tachometer-alt fa-2x text-primary mb-3"></i>
+                            <h5 class="card-title">Dashboard</h5>
+                            <p class="card-text">View your account overview and recent activities</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-3 mb-3">
+                <a href="/transactions" class="text-decoration-none">
+                    <div class="card feature-card text-center h-100">
+                        <div class="card-body">
+                            <i class="fas fa-exchange-alt fa-2x text-success mb-3"></i>
+                            <h5 class="card-title">Transactions</h5>
+                            <p class="card-text">Send money, view history, and manage payments</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-3 mb-3">
+                <a href="/profile" class="text-decoration-none">
+                    <div class="card feature-card text-center h-100">
+                        <div class="card-body">
+                            <i class="fas fa-user-cog fa-2x text-info mb-3"></i>
+                            <h5 class="card-title">Profile</h5>
+                            <p class="card-text">Update your personal information and preferences</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-3 mb-3">
+                <a href="/security" class="text-decoration-none">
+                    <div class="card feature-card text-center h-100">
+                        <div class="card-body">
+                            <i class="fas fa-shield-alt fa-2x text-warning mb-3"></i>
+                            <h5 class="card-title">Security</h5>
+                            <p class="card-text">Manage MFA, sessions, and security settings</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    <% } %>
+
+    <!-- Security Features Section -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="text-center mb-4">Security Features Implemented</h2>
+            <p class="text-center text-muted mb-5">This application demonstrates comprehensive security measures required for the assignment</p>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card feature-card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-user-shield fa-3x text-primary mb-3"></i>
+                    <h5 class="card-title">Authentication & Authorization</h5>
+                    <ul class="list-unstyled text-start">
+                        <li><i class="fas fa-check text-success"></i> Multi-Factor Authentication (MFA)</li>
+                        <li><i class="fas fa-check text-success"></i> Role-Based Access Control (RBAC)</li>
+                        <li><i class="fas fa-check text-success"></i> Session Management</li>
+                        <li><i class="fas fa-check text-success"></i> Brute-force Protection</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card feature-card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-lock fa-3x text-success mb-3"></i>
+                    <h5 class="card-title">Data Protection</h5>
+                    <ul class="list-unstyled text-start">
+                        <li><i class="fas fa-check text-success"></i> Password Encryption</li>
+                        <li><i class="fas fa-check text-success"></i> Data Encryption at Rest</li>
+                        <li><i class="fas fa-check text-success"></i> Secure Password Policies</li>
+                        <li><i class="fas fa-check text-success"></i> Input Validation & Sanitization</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card feature-card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-clipboard-list fa-3x text-info mb-3"></i>
+                    <h5 class="card-title">Monitoring & Auditing</h5>
+                    <ul class="list-unstyled text-start">
+                        <li><i class="fas fa-check text-success"></i> Comprehensive Activity Logging</li>
+                        <li><i class="fas fa-check text-success"></i> Real-time Security Monitoring</li>
+                        <li><i class="fas fa-check text-success"></i> Fraud Detection</li>
+                        <li><i class="fas fa-check text-success"></i> Audit Trail Management</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Technical Implementation -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="text-center mb-4">Technical Implementation</h2>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-code"></i> Backend Technologies</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        <li><i class="fab fa-node-js text-success"></i> <strong>Node.js</strong> - Runtime Environment</li>
+                        <li><i class="fas fa-server text-primary"></i> <strong>Express.js</strong> - Web Framework</li>
+                        <li><i class="fas fa-database text-warning"></i> <strong>MongoDB</strong> - Database</li>
+                        <li><i class="fas fa-key text-danger"></i> <strong>JWT</strong> - Token Authentication</li>
+                        <li><i class="fas fa-shield-alt text-info"></i> <strong>bcrypt</strong> - Password Hashing</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-security"></i> Security Measures</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-helmet-safety text-primary"></i> <strong>Helmet.js</strong> - Security Headers</li>
+                        <li><i class="fas fa-tachometer-alt text-warning"></i> <strong>Rate Limiting</strong> - DDoS Protection</li>
+                        <li><i class="fas fa-filter text-success"></i> <strong>Input Validation</strong> - XSS Prevention</li>
+                        <li><i class="fas fa-eye text-info"></i> <strong>CORS</strong> - Cross-Origin Security</li>
+                        <li><i class="fas fa-file-alt text-secondary"></i> <strong>Winston</strong> - Audit Logging</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Assignment Information -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-primary">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-graduation-cap"></i> Assignment Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Module Details</h6>
+                            <ul class="list-unstyled">
+                                <li><strong>Module:</strong> Security (ST6005CEM)</li>
+                                <li><strong>Assignment:</strong> Individual Report</li>
+                                <li><strong>Due Date:</strong> 1 August 2025</li>
+                                <li><strong>Weight:</strong> 50% (Core Assessment)</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Implementation Features</h6>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-check text-success"></i> User Registration & Authentication</li>
+                                <li><i class="fas fa-check text-success"></i> Multi-Factor Authentication</li>
+                                <li><i class="fas fa-check text-success"></i> Secure Transaction Processing</li>
+                                <li><i class="fas fa-check text-success"></i> Comprehensive Audit Logging</li>
+                                <li><i class="fas fa-check text-success"></i> Role-Based Access Control</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
