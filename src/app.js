@@ -6,6 +6,7 @@ const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 const cors = require('cors');
 const path = require('path');
+const expressLayouts = require('express-ejs-layouts');
 require('dotenv').config();
 
 // Import routes
@@ -16,7 +17,7 @@ const transactionRoutes = require('./routes/transaction');
 
 // Import middleware
 const { auditLoggerMiddleware } = require('./middleware/auditLogger');
-const { errorHandler, notFound } = require('./middleware/errorHandler');
+const { errorHandler } = require('./middleware/errorHandler');
 
 const app = express();
 
@@ -25,11 +26,11 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com"],
-      scriptSrc: ["'self'", "https://cdnjs.cloudflare.com"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com", "https://fonts.googleapis.com"],
+      scriptSrc: ["'self'", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com"],
       imgSrc: ["'self'", "data:", "https:"],
       connectSrc: ["'self'"],
-      fontSrc: ["'self'", "https://cdnjs.cloudflare.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],
       objectSrc: ["'none'"],
       mediaSrc: ["'self'"],
       frameSrc: ["'none'"],
@@ -88,6 +89,10 @@ app.use(express.static(path.join(__dirname, '../public')));
 // View engine setup
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, '../views'));
+
+// Configure express-ejs-layouts
+app.use(expressLayouts);
+app.set('layout', 'layout'); // layout.ejs will be used as the default layout
 
 // Audit logging middleware
 app.use(auditLoggerMiddleware);

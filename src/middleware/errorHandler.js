@@ -72,13 +72,6 @@ const errorHandler = (err, req, res, next) => {
   });
 };
 
-// 404 handler
-const notFound = (req, res, next) => {
-  const error = new Error(`Not found - ${req.originalUrl}`);
-  res.status(404);
-  next(error);
-};
-
 // Async error handler wrapper
 const asyncHandler = (fn) => (req, res, next) => {
   Promise.resolve(fn(req, res, next)).catch(next);
@@ -86,6 +79,5 @@ const asyncHandler = (fn) => (req, res, next) => {
 
 module.exports = {
   errorHandler,
-  notFound,
   asyncHandler
 };
