@@ -111,6 +111,20 @@ app.get('/', (req, res) => {
   });
 });
 
+// Registration page route
+app.get('/register', (req, res) => {
+  res.render('register', { 
+    title: 'Create Account - SecureBank'
+  });
+});
+
+// Login page route
+app.get('/login', (req, res) => {
+  res.render('login', { 
+    title: 'Sign In - SecureBank'
+  });
+});
+
 // 404 handler
 app.use((req, res) => {
   res.status(404).render('404', { title: 'Page Not Found' });
