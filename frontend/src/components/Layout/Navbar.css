@@ -1,0 +1,49 @@
+/* Navbar.css - Additional styles for Navbar component */
+
+.nav-link {
+  position: relative;
+}
+
+.nav-link:hover {
+  color: #ffffff !important;
+}
+
+.nav-link:after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 2px;
+  bottom: -2px;
+  left: 0;
+  background-color: #4caf50;
+  visibility: hidden;
+  transition: all 0.3s ease-in-out;
+}
+
+.nav-link:hover:after {
+  visibility: visible;
+  width: 100%;
+}
+
+.bank-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.bank-logo:hover {
+  transform: scale(1.03);
+  transition: transform 0.3s ease;
+}
+
+.logout-btn:hover {
+  background-color: #3d9940 !important;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2) !important;
+}
+
+.register-btn:hover {
+  background-color: #3d9940 !important;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2) !important;
+  transform: translateY(-2px);
+  transition: all 0.3s ease;
+}

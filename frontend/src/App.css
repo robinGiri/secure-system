@@ -1,0 +1,156 @@
+/* App.css - Styles for Robin Bank Application */
+
+/* Import Poppins font from Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+/* Import Font Awesome */
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css');
+
+body {
+  font-family: 'Poppins', sans-serif;
+  margin: 0;
+  padding: 0;
+  color: #333;
+  background-color: #f8f9fa;
+}
+
+.App {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+main {
+  flex: 1;
+}
+
+/* Button hover effects */
+a[href="/login"]:hover, 
+a[href="/register"]:hover {
+  transform: translateY(-3px) !important;
+  box-shadow: 0 6px 12px rgba(0,0,0,0.15) !important;
+  transition: all 0.3s ease;
+}
+
+/* Feature card hover effects */
+[style*="featureCardStyle"]:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
+}
+
+/* Feature icon container hover effect */
+[style*="featureIconContainerStyle"]:hover {
+  background-color: rgba(4, 58, 107, 0.2) !important;
+  transform: rotate(5deg);
+  transition: all 0.3s ease;
+}
+
+/* Loading animation */
+.loading-spinner {
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border-left-color: #043a6b;
+  animation: spin 1s linear infinite;
+  margin: 0 auto;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #043a6b;
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #1a6baa;
+}
+
+/* Improved form styling */
+input.form-control:focus,
+textarea.form-control:focus {
+  border-color: #043a6b;
+  box-shadow: 0 0 0 0.2rem rgba(4, 58, 107, 0.25);
+}
+
+.btn-primary {
+  background-color: #043a6b !important;
+  border-color: #043a6b !important;
+}
+
+.btn-primary:hover {
+  background-color: #1a6baa !important;
+  border-color: #1a6baa !important;
+  transform: translateY(-3px);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+  transition: all 0.3s ease;
+}
+
+/* Global Card Styling */
+.card {
+  border-radius: 12px;
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+}
+
+/* Global styling for Robin Bank */
+.robin-bank-text {
+  color: #043a6b;
+  font-weight: 600;
+}
+
+.robin-bank-bg {
+  background-color: #043a6b;
+  color: white;
+}
+
+.robin-bank-accent {
+  color: #4caf50;
+}
+
+.robin-bank-accent-bg {
+  background-color: #4caf50;
+  color: white;
+}
+
+/* Page transitions */
+.page-enter {
+  opacity: 0;
+}
+
+.page-enter-active {
+  opacity: 1;
+  transition: opacity 300ms;
+}
+
+.page-exit {
+  opacity: 1;
+}
+
+.page-exit-active {
+  opacity: 0;
+  transition: opacity 300ms;
+}

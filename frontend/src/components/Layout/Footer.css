@@ -1,0 +1,41 @@
+/* Footer.css - Additional styles for Footer component */
+
+.footer-link {
+  position: relative;
+}
+
+.footer-link::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 1px;
+  bottom: -2px;
+  left: 0;
+  background-color: #4caf50;
+  visibility: hidden;
+  transition: all 0.3s ease;
+}
+
+.footer-link:hover {
+  color: #ffffff !important;
+}
+
+.footer-link:hover::after {
+  visibility: visible;
+  width: 100%;
+}
+
+.social-link:hover {
+  background-color: #4caf50 !important;
+  transform: translateY(-3px);
+}
+
+.footer-heading::after {
+  content: '';
+  position: absolute;
+  width: 40px;
+  height: 3px;
+  background-color: #4caf50;
+  bottom: 0;
+  left: 0;
+}
