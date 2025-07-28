@@ -108,41 +108,53 @@ const logResponse = async (req, res, responseBody, duration) => {
     const riskLevel = assessRiskLevel(req, res);
     const success = res.statusCode < 400;
 
-    // Create audit log entry
-    const auditLogEntry = new AuditLog({
-      eventType,
-      userId: req.user?._id,
-      username: req.user?.username || extractUsernameFromRequest(req),
-      userRole: req.user?.role,
-      sessionId: req.sessionID,
-      ipAddress: req.audit.ipAddress,
-      userAgent: req.audit.userAgent,
-      method: req.method,
-      url: req.originalUrl,
-      endpoint: req.audit.endpoint,
-      requestId: req.audit.requestId,
-      action: generateActionDescription(req, res),
-      resource: extractResourceFromPath(req.originalUrl),
-      success,
-      statusCode: res.statusCode,
-      riskLevel,
-      duration,
-      metadata: {
-        responseSize: JSON.stringify(responseBody || {}).length,
-        query: req.query,
-        params: req.params
+    // Only create database audit log for authenticated users or specific events
+    const shouldCreateAuditLog = req.user?._id || 
+                                eventType === 'login_failed' || 
+                                eventType === 'suspicious_activity' ||
+                                eventType === 'security_violation' ||
+                                riskLevel === 'high' ||
+                                riskLevel === 'critical';
+
+    if (shouldCreateAuditLog) {
+      // Create audit log entry
+      const auditLogEntry = new AuditLog({
+        eventType,
+        userId: req.user?._id || null,
+        username: req.user?.username || extractUsernameFromRequest(req),
+        userRole: req.user?.role,
+        sessionId: req.sessionID,
+        ipAddress: req.audit.ipAddress,
+        userAgent: req.audit.userAgent,
+        method: req.method,
+        url: req.originalUrl,
+        endpoint: req.audit.endpoint,
+        requestId: req.audit.requestId,
+        action: generateActionDescription(req, res),
+        resource: extractResourceFromPath(req.originalUrl),
+        success,
+        statusCode: res.statusCode,
+        riskLevel,
+        duration,
+        metadata: {
+          responseSize: JSON.stringify(responseBody || {}).length,
+          query: req.query,
+          params: req.params
+        }
+      });
+
+      // Add security flags if needed
+      const securityFlags = detectSecurityFlags(req, res, responseBody);
+      if (securityFlags.length > 0) {
+        auditLogEntry.securityFlags = securityFlags;
+        auditLogEntry.riskLevel = 'high';
       }
-    });
 
-    // Add security flags if needed
-    const securityFlags = detectSecurityFlags(req, res, responseBody);
-    if (securityFlags.length > 0) {
-      auditLogEntry.securityFlags = securityFlags;
-      auditLogEntry.riskLevel = 'high';
+      // Save to database only if we have userId or it's a system error
+      if (req.user?._id || eventType === 'system_error') {
+        await auditLogEntry.save();
+      }
     }
-
-    // Save to database
-    await auditLogEntry.save();
 
     // Log to file
     const logData = {

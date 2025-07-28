@@ -29,7 +29,7 @@ app.use(helmet({
       styleSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com", "https://fonts.googleapis.com"],
       scriptSrc: ["'self'", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com"],
       imgSrc: ["'self'", "data:", "https:"],
-      connectSrc: ["'self'"],
+      connectSrc: ["'self'", "http://localhost:3000", "http://localhost:3001", "http://127.0.0.1:3000", "http://127.0.0.1:3001"],
       fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],
       objectSrc: ["'none'"],
       mediaSrc: ["'self'"],
@@ -45,7 +45,12 @@ app.use(helmet({
 
 // CORS configuration
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: [
+    process.env.FRONTEND_URL || 'http://localhost:3001',
+    'http://localhost:3000',
+    'http://127.0.0.1:3001',
+    'http://127.0.0.1:3000'
+  ],
   credentials: true,
   optionsSuccessStatus: 200
 }));
@@ -123,6 +128,43 @@ app.get('/login', (req, res) => {
   res.render('login', { 
     title: 'Sign In - SecureBank'
   });
+});
+
+// Dashboard route (protected)
+app.get('/dashboard', (req, res) => {
+  if (!req.session.user) {
+    return res.redirect('/login');
+  }
+  
+  res.render('index', { 
+    title: 'Dashboard - SecureBank',
+    user: req.session.user
+  });
+});
+
+// Debug login page
+app.get('/debug-login', (req, res) => {
+  res.sendFile(path.join(__dirname, '../debug-login.html'));
+});
+
+// Simple login test page
+app.get('/simple-login-test', (req, res) => {
+  res.sendFile(path.join(__dirname, '../simple-login-test.html'));
+});
+
+// Vue.js login page
+app.get('/vue-login', (req, res) => {
+  res.sendFile(path.join(__dirname, '../vue-login.html'));
+});
+
+// Login comparison test
+app.get('/login-comparison', (req, res) => {
+  res.sendFile(path.join(__dirname, '../login-comparison.html'));
+});
+
+// System dashboard
+app.get('/system-dashboard', (req, res) => {
+  res.sendFile(path.join(__dirname, '../system-dashboard.html'));
 });
 
 // 404 handler

@@ -111,8 +111,16 @@ router.post('/register', registerValidation, asyncHandler(async (req, res) => {
 
 // Login user
 router.post('/login', loginLimiter, loginValidation, asyncHandler(async (req, res) => {
+  console.log('🔐 Login attempt received:', { 
+    username: req.body.username, 
+    hasPassword: !!req.body.password,
+    ip: req.ip,
+    userAgent: req.get('User-Agent')
+  });
+
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
+    console.log('❌ Validation errors:', errors.array());
     return res.status(400).json({
       success: false,
       message: 'Validation failed',
@@ -122,15 +130,39 @@ router.post('/login', loginLimiter, loginValidation, asyncHandler(async (req, re
 
   const { username, password, mfaToken } = req.body;
 
+  console.log('🔍 Looking for user:', username);
+  
   // Find user by username or email
   const user = await User.findOne({
     $or: [{ username }, { email: username }]
   }).select('+mfaSecret');
 
-  if (!user || !(await user.comparePassword(password))) {
+  if (!user) {
+    console.log('❌ User not found:', username);
+    await logSecurityEvent(req, 'login_failed', 'User not found', null, false);
+    return res.status(401).json({
+      success: false,
+      message: 'Invalid credentials'
+    });
+  }
+
+  console.log('👤 User found:', { 
+    id: user._id, 
+    username: user.username, 
+    isActive: user.isActive,
+    isLocked: user.isLocked,
+    loginAttempts: user.loginAttempts
+  });
+
+  // Check password
+  const passwordMatch = await user.comparePassword(password);
+  console.log('🔑 Password check:', passwordMatch ? 'valid' : 'invalid');
+
+  if (!passwordMatch) {
     // Increment login attempts if user exists
     if (user) {
       await user.incLoginAttempts();
+      console.log('⚠️ Incremented login attempts for user:', user.username);
     }
     
     await logSecurityEvent(req, 'login_failed', 'Invalid credentials', user?._id, false);
@@ -201,11 +233,13 @@ router.post('/login', loginLimiter, loginValidation, asyncHandler(async (req, re
   // Reset login attempts on successful login
   if (user.loginAttempts > 0) {
     await user.resetLoginAttempts();
+    console.log('🔄 Reset login attempts for user:', user.username);
   }
 
   // Update last login
   user.lastLogin = new Date();
   await user.save();
+  console.log('💾 Updated last login for user:', user.username);
 
   // Create session
   req.session.user = {
@@ -213,9 +247,16 @@ router.post('/login', loginLimiter, loginValidation, asyncHandler(async (req, re
     username: user.username,
     role: user.role
   };
+  console.log('🎫 Created session for user:', {
+    id: user._id,
+    username: user.username,
+    role: user.role,
+    sessionId: req.sessionID
+  });
 
   // Add session to user's active sessions
   await user.addSession(req.sessionID, req.ip, req.get('User-Agent'));
+  console.log('📝 Added session to user active sessions');
 
   // Generate JWT token (optional, for API access)
   const token = jwt.sign(
@@ -223,10 +264,11 @@ router.post('/login', loginLimiter, loginValidation, asyncHandler(async (req, re
     process.env.JWT_SECRET,
     { expiresIn: process.env.JWT_EXPIRES_IN || '1h' }
   );
+  console.log('🔑 Generated JWT token');
 
   await logSecurityEvent(req, 'user_login', 'User logged in successfully', user._id, true);
 
-  res.json({
+  const responseData = {
     success: true,
     message: 'Login successful',
     data: {
@@ -243,7 +285,16 @@ router.post('/login', loginLimiter, loginValidation, asyncHandler(async (req, re
       token,
       sessionId: req.sessionID
     }
+  };
+
+  console.log('✅ Sending success response:', {
+    success: responseData.success,
+    message: responseData.message,
+    userId: responseData.data.user.id,
+    sessionId: responseData.data.sessionId
   });
+
+  res.json(responseData);
 }));
 
 // Logout user
