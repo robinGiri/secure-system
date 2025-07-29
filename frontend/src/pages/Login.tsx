@@ -1,6 +1,7 @@
 import React, { useState, FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import SimpleCaptcha from '../components/SimpleCaptcha';
 import './Auth.css';
 
 const Login: React.FC = () => {
@@ -13,6 +14,8 @@ const Login: React.FC = () => {
   });
 
   const [validationErrors, setValidationErrors] = useState<{[key: string]: string}>({});
+  const [captchaToken, setCaptchaToken] = useState('');
+  const [requireCaptcha, setRequireCaptcha] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;

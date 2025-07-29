@@ -1,9 +1,56 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { apiService } from '../services/api';
+import { Transaction } from '../types';
 import './Dashboard.css';
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
+  const [recentTransactions, setRecentTransactions] = useState<Transaction[]>([]);
+  const [balance, setBalance] = useState<number>(0);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadDashboardData = async () => {
+      try {
+        // Load recent transactions
+        const transactionsResponse = await apiService.getTransactions({ limit: 5 });
+        if (transactionsResponse.success && transactionsResponse.data) {
+          setRecentTransactions(transactionsResponse.data.transactions);
+        }
+
+        // Load current balance
+        const balanceResponse = await apiService.getUserBalance();
+        if (balanceResponse.success && balanceResponse.data) {
+          setBalance(balanceResponse.data.balance);
+        }
+      } catch (error) {
+        console.error('Failed to load dashboard data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadDashboardData();
+  }, []);
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(amount);
+  };
+
+  const getTransactionIcon = (type: string) => {
+    const icons: { [key: string]: string } = {
+      'transfer': 'fas fa-exchange-alt',
+      'deposit': 'fas fa-plus-circle',
+      'withdrawal': 'fas fa-minus-circle',
+      'payment': 'fas fa-credit-card'
+    };
+    return icons[type] || 'fas fa-circle';
+  };
 
   return (
     <div style={containerStyle}>
@@ -19,17 +66,17 @@ const Dashboard: React.FC = () => {
             <div style={balanceBadgeStyle}>Checking Account</div>
           </div>
           <p style={balanceAmountStyle}>
-            ${user?.balance?.toFixed(2) || '0.00'}
+            {loading ? 'Loading...' : formatCurrency(balance)}
           </p>
           <div style={balanceActionsStyle}>
-            <button style={primaryButtonStyle} className="dashboard-btn">
+            <Link to="/transactions" style={primaryButtonStyle} className="dashboard-btn">
               <i className="fas fa-exchange-alt" style={{marginRight: '8px'}}></i>
               Transfer Money
-            </button>
-            <button style={{...secondaryButtonStyle, marginLeft: '10px'}} className="dashboard-btn">
+            </Link>
+            <Link to="/transactions" style={{...secondaryButtonStyle, marginLeft: '10px', textDecoration: 'none'}} className="dashboard-btn">
               <i className="fas fa-history" style={{marginRight: '8px'}}></i>
               Transactions
-            </button>
+            </Link>
           </div>
         </div>
       </div>
@@ -90,18 +137,77 @@ const Dashboard: React.FC = () => {
           </div>
           <h3 style={cardTitleStyle}>Quick Actions</h3>
           <div style={actionButtonsStyle}>
-            <button style={actionButtonStyle} className="dashboard-action-btn">
+            <Link to="/transactions" style={{...actionButtonStyle, textDecoration: 'none'}} className="dashboard-action-btn">
               <i className="fas fa-credit-card" style={{marginRight: '8px'}}></i>
-              Manage Cards
-            </button>
+              New Transaction
+            </Link>
             <button style={actionButtonStyle} className="dashboard-action-btn">
               <i className="fas fa-money-check" style={{marginRight: '8px'}}></i>
               Pay Bills
             </button>
             <button style={actionButtonStyle} className="dashboard-action-btn">
-              <i className="fas fa-cog" style={{marginRight: '8px'}}></i>
-              Account Settings
+              <i className="fas fa-download" style={{marginRight: '8px'}}></i>
+              Statements
             </button>
+          </div>
+        </div>
+
+        <div style={cardStyle} className="dashboard-card">
+          <div style={cardIconContainerStyle} className="card-icon">
+            <i className="fas fa-receipt" style={cardIconStyle}></i>
+          </div>
+          <h3 style={cardTitleStyle}>Recent Transactions</h3>
+          <div style={cardContentStyle}>
+            {loading ? (
+              <div style={{ textAlign: 'center', padding: '20px' }}>
+                <i className="fas fa-spinner fa-spin" style={{ marginRight: '8px' }}></i>
+                Loading transactions...
+              </div>
+            ) : recentTransactions.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '20px', color: '#666' }}>
+                <i className="fas fa-inbox" style={{ fontSize: '24px', marginBottom: '10px', display: 'block' }}></i>
+                No recent transactions
+              </div>
+            ) : (
+              <>
+                {recentTransactions.map((transaction, index) => (
+                  <div key={transaction.id} style={{
+                    ...detailRowStyle,
+                    borderBottom: index < recentTransactions.length - 1 ? '1px solid #f0f0f0' : 'none',
+                    paddingBottom: '10px',
+                    marginBottom: '10px'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                      <i className={getTransactionIcon(transaction.type)} style={{ marginRight: '10px', color: '#043a6b' }}></i>
+                      <div>
+                        <div style={{ fontWeight: '500', fontSize: '14px' }}>
+                          {transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1)}
+                        </div>
+                        <div style={{ fontSize: '12px', color: '#666' }}>
+                          {new Date(transaction.createdAt).toLocaleDateString()}
+                        </div>
+                      </div>
+                    </div>
+                    <span style={{
+                      ...detailValueStyle,
+                      color: transaction.isIncoming ? '#27ae60' : '#e74c3c',
+                      fontWeight: '600'
+                    }}>
+                      {transaction.isIncoming ? '+' : '-'}{formatCurrency(transaction.amount)}
+                    </span>
+                  </div>
+                ))}
+                <Link to="/transactions" style={{
+                  ...actionButtonStyle,
+                  width: '100%',
+                  textAlign: 'center',
+                  textDecoration: 'none',
+                  marginTop: '15px'
+                }} className="dashboard-action-btn">
+                  View All Transactions
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </div>

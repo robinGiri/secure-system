@@ -103,6 +103,32 @@ router.get('/profile', authenticateSession, asyncHandler(async (req, res) => {
   });
 }));
 
+// Get current user's balance
+router.get('/balance', authenticateSession, asyncHandler(async (req, res) => {
+  const userId = req.user._id;
+
+  const user = await User.findById(userId).select('balance accountNumber');
+  
+  if (!user) {
+    return res.status(404).json({
+      success: false,
+      message: 'User not found'
+    });
+  }
+
+  await logDataAccess('user_balance', userId, 'view', req);
+
+  res.json({
+    success: true,
+    data: {
+      balance: user.balance,
+      currency: 'USD',
+      accountNumber: user.accountNumber,
+      lastUpdated: new Date().toISOString()
+    }
+  });
+}));
+
 // Update user profile
 router.put('/profile', authenticateSession, sensitiveOperationLimiter, [
   body('firstName').optional().isLength({ min: 1, max: 50 }).trim(),

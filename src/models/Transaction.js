@@ -12,7 +12,7 @@ const transactionSchema = new mongoose.Schema({
   // Transaction Details
   type: {
     type: String,
-    enum: ['transfer', 'deposit', 'withdrawal', 'payment'],
+    enum: ['transfer', 'deposit', 'withdrawal', 'payment', 'refund', 'chargeback'],
     required: true
   },
   amount: {
@@ -81,7 +81,7 @@ const transactionSchema = new mongoose.Schema({
   // Transaction Status
   status: {
     type: String,
-    enum: ['pending', 'processing', 'completed', 'failed', 'cancelled'],
+    enum: ['pending', 'processing', 'completed', 'failed', 'cancelled', 'disputed', 'refunded', 'partial_refund'],
     default: 'pending'
   },
   statusHistory: [{
@@ -173,6 +173,55 @@ const transactionSchema = new mongoose.Schema({
   // External References
   externalTransactionId: String,
   paymentGatewayReference: String,
+  
+  // Stripe-specific fields
+  stripePaymentIntentId: String,
+  stripeChargeId: String,
+  stripeRefundId: String,
+  stripeTransferId: String,
+  stripeDisputeId: String,
+  stripePaymentMethodId: String,
+  
+  // Dispute and Refund Information
+  disputeDetails: {
+    stripeDisputeId: String,
+    reason: String,
+    status: String,
+    amount: Number,
+    currency: String,
+    createdAt: Date,
+    evidence: String,
+    resolvedAt: Date,
+    outcome: String
+  },
+  
+  refundDetails: {
+    stripeRefundId: String,
+    reason: String,
+    amount: Number,
+    currency: String,
+    createdAt: Date,
+    status: String
+  },
+  
+  // Reconciliation status
+  isReconciled: {
+    type: Boolean,
+    default: false
+  },
+  reconciliationDetails: {
+    reconciliationId: String,
+    reconciledAt: Date,
+    reconciliationMethod: {
+      type: String,
+      enum: ['automatic', 'manual']
+    },
+    reconciledBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    },
+    notes: String
+  },
   
   // Encryption and Security
   encryptedData: String, // For sensitive information
@@ -288,32 +337,63 @@ transactionSchema.methods.validateChecksum = function() {
 
 // Encrypt sensitive data
 transactionSchema.methods.encryptSensitiveData = function(data) {
-  const algorithm = 'aes-256-cbc';
-  const key = process.env.ENCRYPTION_KEY || 'your-32-character-encryption-key-12';
+  const algorithm = 'aes-256-gcm'; // More secure than CBC mode
+  const key = process.env.ENCRYPTION_KEY || 'your-32-character-encryption-key-12345';
   const iv = crypto.randomBytes(16);
   
-  const cipher = crypto.createCipher(algorithm, key);
-  let encrypted = cipher.update(JSON.stringify(data), 'utf8', 'hex');
-  encrypted += cipher.final('hex');
-  
-  this.encryptedData = iv.toString('hex') + ':' + encrypted;
+  try {
+    // Create cipher with GCM mode for authenticated encryption
+    const cipher = crypto.createCipheriv(algorithm, Buffer.from(key), iv);
+    
+    // Encrypt data
+    let encrypted = cipher.update(JSON.stringify(data), 'utf8', 'hex');
+    encrypted += cipher.final('hex');
+    
+    // Get auth tag for verification during decryption
+    const authTag = cipher.getAuthTag();
+    
+    // Store all components needed for decryption
+    this.encryptedData = JSON.stringify({
+      iv: iv.toString('hex'),
+      encryptedData: encrypted,
+      authTag: authTag.toString('hex'),
+      algorithm
+    });
+  } catch (error) {
+    throw new Error(`Encryption failed: ${error.message}`);
+  }
 };
 
 // Decrypt sensitive data
 transactionSchema.methods.decryptSensitiveData = function() {
   if (!this.encryptedData) return null;
   
-  const algorithm = 'aes-256-cbc';
-  const key = process.env.ENCRYPTION_KEY || 'your-32-character-encryption-key-12';
-  const textParts = this.encryptedData.split(':');
-  const iv = Buffer.from(textParts.shift(), 'hex');
-  const encryptedText = textParts.join(':');
-  
-  const decipher = crypto.createDecipher(algorithm, key);
-  let decrypted = decipher.update(encryptedText, 'hex', 'utf8');
-  decrypted += decipher.final('utf8');
-  
-  return JSON.parse(decrypted);
+  try {
+    // Parse the stored encryption data
+    const encryptionData = JSON.parse(this.encryptedData);
+    const { iv, encryptedData, authTag, algorithm } = encryptionData;
+    
+    // Get encryption key from environment
+    const key = process.env.ENCRYPTION_KEY || 'your-32-character-encryption-key-12345';
+    
+    // Create decipher
+    const decipher = crypto.createDecipheriv(
+      algorithm,
+      Buffer.from(key),
+      Buffer.from(iv, 'hex')
+    );
+    
+    // Set auth tag for verification
+    decipher.setAuthTag(Buffer.from(authTag, 'hex'));
+    
+    // Decrypt
+    let decrypted = decipher.update(encryptedData, 'hex', 'utf8');
+    decrypted += decipher.final('utf8');
+    
+    return JSON.parse(decrypted);
+  } catch (error) {
+    throw new Error(`Decryption failed: ${error.message}`);
+  }
 };
 
 // Static method to get transaction summary

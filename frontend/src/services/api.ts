@@ -1,5 +1,5 @@
 // API service for handling HTTP requests
-import { LoginRequest, RegisterRequest, User } from '../types';
+import { LoginRequest, RegisterRequest, User, Transaction, CreateTransactionRequest, TransactionFilters, TransactionsResponse } from '../types';
 
 // For development with proxy in package.json, we can use relative URLs
 // In production, we'll use the full URL from environment variable
@@ -180,17 +180,92 @@ class ApiService {
   }
 
   // Transaction endpoints
-  async getTransactions(): Promise<ApiResponse<any[]>> {
+  async getTransactions(filters?: TransactionFilters): Promise<ApiResponse<TransactionsResponse>> {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/transactions`, {
+      const queryParams = new URLSearchParams();
+      
+      if (filters) {
+        Object.entries(filters).forEach(([key, value]) => {
+          if (value !== undefined && value !== null) {
+            queryParams.append(key, String(value));
+          }
+        });
+      }
+      
+      const queryString = queryParams.toString();
+      const url = `${API_BASE_URL}/api/transactions${queryString ? `?${queryString}` : ''}`;
+      
+      const response = await fetch(url, {
         method: 'GET',
         headers: this.getHeaders(true),
         credentials: 'include',
       });
 
-      return this.handleResponse<ApiResponse<any[]>>(response);
+      return this.handleResponse<ApiResponse<TransactionsResponse>>(response);
     } catch (error) {
       console.error('Get transactions fetch error:', error);
+      throw error;
+    }
+  }
+
+  async getTransaction(transactionId: string): Promise<ApiResponse<{ transaction: Transaction }>> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/transactions/${transactionId}`, {
+        method: 'GET',
+        headers: this.getHeaders(true),
+        credentials: 'include',
+      });
+
+      return this.handleResponse<ApiResponse<{ transaction: Transaction }>>(response);
+    } catch (error) {
+      console.error('Get transaction fetch error:', error);
+      throw error;
+    }
+  }
+
+  async createTransaction(transactionData: CreateTransactionRequest): Promise<ApiResponse<{ transaction: Transaction }>> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/transactions`, {
+        method: 'POST',
+        headers: this.getHeaders(true),
+        body: JSON.stringify(transactionData),
+        credentials: 'include',
+      });
+
+      return this.handleResponse<ApiResponse<{ transaction: Transaction }>>(response);
+    } catch (error) {
+      console.error('Create transaction fetch error:', error);
+      throw error;
+    }
+  }
+
+  async cancelTransaction(transactionId: string): Promise<ApiResponse<{ transaction: Transaction }>> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/transactions/${transactionId}/cancel`, {
+        method: 'POST',
+        headers: this.getHeaders(true),
+        credentials: 'include',
+      });
+
+      return this.handleResponse<ApiResponse<{ transaction: Transaction }>>(response);
+    } catch (error) {
+      console.error('Cancel transaction fetch error:', error);
+      throw error;
+    }
+  }
+
+  // User balance endpoint
+  async getUserBalance(): Promise<ApiResponse<{ balance: number; currency: string }>> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/user/balance`, {
+        method: 'GET',
+        headers: this.getHeaders(true),
+        credentials: 'include',
+      });
+
+      return this.handleResponse<ApiResponse<{ balance: number; currency: string }>>(response);
+    } catch (error) {
+      console.error('Get user balance fetch error:', error);
       throw error;
     }
   }

@@ -140,6 +140,13 @@ router.post('/register', registerValidation, asyncHandler(async (req, res) => {
 
   const { username, email, password, firstName, lastName, phoneNumber, captchaToken } = req.body;
 
+  // Debug logging for CAPTCHA requirement
+  console.log('CAPTCHA Debug:', {
+    captchaToken: !!captchaToken,
+    REQUIRE_CAPTCHA: process.env.REQUIRE_CAPTCHA,
+    shouldRequire: process.env.REQUIRE_CAPTCHA !== 'false'
+  });
+
   // Verify CAPTCHA token (required for registration to prevent automated attacks)
   // This is a placeholder for actual CAPTCHA verification logic
   if (!captchaToken && process.env.REQUIRE_CAPTCHA !== 'false') {
@@ -202,34 +209,41 @@ router.post('/register', registerValidation, asyncHandler(async (req, res) => {
     lastName,
     phoneNumber,
     role: 'user',
-    isVerified: false // Email verification required
+    isVerified: process.env.REQUIRE_EMAIL_VERIFICATION !== 'false' ? false : true // Skip verification in development
   });
 
   await user.save();
 
-  // Generate verification token
-  const verificationToken = user.createVerificationToken();
-  await user.save();
+  // Generate verification token only if email verification is required
+  let verificationToken;
+  if (process.env.REQUIRE_EMAIL_VERIFICATION !== 'false') {
+    verificationToken = user.createVerificationToken();
+    await user.save();
+  }
 
   await logSecurityEvent(req, 'user_registration', 'User registered successfully', user._id, true);
   
   // In production, an email would be sent with the verification token
   // For development, we'll include the token in the response
 
+  const requireEmailVerification = process.env.REQUIRE_EMAIL_VERIFICATION !== 'false';
+
   // Send verification email in production
   // For development, include verification token in response
   res.status(201).json({
     success: true,
-    message: 'User registered successfully. Please verify your email to activate your account.',
+    message: requireEmailVerification 
+      ? 'User registered successfully. Please verify your email to activate your account.'
+      : 'User registered successfully. You can now log in.',
     data: {
       userId: user._id,
       username: user.username,
       email: user.email,
       accountNumber: user.accountNumber,
-      requireEmailVerification: true,
+      requireEmailVerification,
       // Remove these in production
-      verificationToken: process.env.NODE_ENV === 'development' ? verificationToken : undefined,
-      verificationInstructions: 'Use the verification token to verify your email address.'
+      verificationToken: (process.env.NODE_ENV === 'development' && verificationToken) ? verificationToken : undefined,
+      verificationInstructions: verificationToken ? 'Use the verification token to verify your email address.' : undefined
     }
   });
 }));
@@ -323,7 +337,7 @@ router.post('/login', loginLimiter, loginValidation, asyncHandler(async (req, re
   }
   
   // Check if email is verified (only if verification is required)
-  if (!user.isVerified) {
+  if (!user.isVerified && process.env.REQUIRE_EMAIL_VERIFICATION !== 'false') {
     await logSecurityEvent(req, 'login_failed', 'Email not verified', user._id, false);
     return res.status(401).json({
       success: false,

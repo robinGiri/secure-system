@@ -11,6 +11,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import ApiTest from './pages/ApiTest';
+import Transactions from './pages/Transactions';
 
 // Protected Route Component
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -354,6 +355,15 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <Dashboard />
+                  </ProtectedRoute>
+                } 
+              />
+              
+              <Route 
+                path="/transactions" 
+                element={
+                  <ProtectedRoute>
+                    <Transactions />
                   </ProtectedRoute>
                 } 
               />
