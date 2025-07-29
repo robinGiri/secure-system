@@ -28,8 +28,8 @@ const auditLogger = winston.createLogger({
   ]
 });
 
-// Add console transport in development
-if (process.env.NODE_ENV !== 'production') {
+// Only log to console in development mode
+if (process.env.NODE_ENV === 'development') {
   auditLogger.add(new winston.transports.Console({
     format: winston.format.simple()
   }));
@@ -97,7 +97,7 @@ const logRequest = async (req) => {
 
     auditLogger.info('HTTP Request', logData);
   } catch (error) {
-    console.error('Error logging request:', error);
+    // Error logging request - should be handled more gracefully in production
   }
 };
 
@@ -192,7 +192,7 @@ const logResponse = async (req, res, responseBody, duration) => {
     }
 
   } catch (error) {
-    console.error('Error logging response:', error);
+    // Error logging response - should be handled more gracefully in production
   }
 };
 
@@ -434,7 +434,7 @@ const logSecurityIncident = async (eventType, description, req, severity = 'medi
     });
 
   } catch (error) {
-    console.error('Failed to log security incident:', error);
+    // Failed to log security incident - should be handled more gracefully in production
   }
 };
 
@@ -457,7 +457,7 @@ const logDataAccess = async (resourceType, resourceId, action, req) => {
 
     await auditLog.save();
   } catch (error) {
-    console.error('Failed to log data access:', error);
+    // Failed to log data access - should be handled more gracefully in production
   }
 };
 

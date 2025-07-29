@@ -95,7 +95,7 @@ const encryptionUtils = {
     const secretKey = key || process.env.ENCRYPTION_KEY || 'your-32-character-encryption-key-12';
     const iv = crypto.randomBytes(16);
     
-    const cipher = crypto.createCipher(algorithm, secretKey);
+    const cipher = crypto.createCipheriv(algorithm, Buffer.from(secretKey), iv);
     
     let encrypted = cipher.update(text, 'utf8', 'hex');
     encrypted += cipher.final('hex');
@@ -114,7 +114,11 @@ const encryptionUtils = {
     const algorithm = 'aes-256-gcm';
     const secretKey = key || process.env.ENCRYPTION_KEY || 'your-32-character-encryption-key-12';
     
-    const decipher = crypto.createDecipher(algorithm, secretKey);
+    const decipher = crypto.createDecipheriv(
+      algorithm, 
+      Buffer.from(secretKey), 
+      Buffer.from(encryptedData.iv, 'hex')
+    );
     decipher.setAuthTag(Buffer.from(encryptedData.authTag, 'hex'));
     
     let decrypted = decipher.update(encryptedData.encrypted, 'hex', 'utf8');

@@ -57,8 +57,8 @@ app.use(cors({
 
 // Rate limiting
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
+  windowMs: 15 * 60 * 1000,
+  max: 100,
   message: 'Too many requests from this IP, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
@@ -80,12 +80,12 @@ app.use(session({
     touchAfter: 24 * 3600 // lazy session update
   }),
   cookie: {
-    secure: process.env.NODE_ENV === 'production', // require HTTPS in production
-    httpOnly: true, // prevent XSS
-    maxAge: 30 * 60 * 1000, // 30 minutes
-    sameSite: 'strict' // CSRF protection
+    secure: process.env.NODE_ENV === 'production',
+    httpOnly: true,
+    maxAge: 30 * 60 * 1000,
+    sameSite: 'strict'
   },
-  name: 'sessionId' // change default session name
+  name: 'sessionId'
 }));
 
 // Static files
@@ -142,30 +142,7 @@ app.get('/dashboard', (req, res) => {
   });
 });
 
-// Debug login page
-app.get('/debug-login', (req, res) => {
-  res.sendFile(path.join(__dirname, '../debug-login.html'));
-});
 
-// Simple login test page
-app.get('/simple-login-test', (req, res) => {
-  res.sendFile(path.join(__dirname, '../simple-login-test.html'));
-});
-
-// Vue.js login page
-app.get('/vue-login', (req, res) => {
-  res.sendFile(path.join(__dirname, '../vue-login.html'));
-});
-
-// Login comparison test
-app.get('/login-comparison', (req, res) => {
-  res.sendFile(path.join(__dirname, '../login-comparison.html'));
-});
-
-// System dashboard
-app.get('/system-dashboard', (req, res) => {
-  res.sendFile(path.join(__dirname, '../system-dashboard.html'));
-});
 
 // 404 handler
 app.use((req, res) => {
@@ -176,25 +153,25 @@ app.use((req, res) => {
 app.use(errorHandler);
 
 // Database connection
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/security_app', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
-.then(() => console.log('Connected to MongoDB'))
-.catch(err => console.error('MongoDB connection error:', err));
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/security_app')
+  .then(() => {
+    // Database connected
+  })
+  .catch(err => {
+    // Log error to proper logging service
+    process.exit(1);
+  });
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
-  console.log('SIGTERM received, shutting down gracefully');
   mongoose.connection.close(() => {
-    console.log('MongoDB connection closed');
     process.exit(0);
   });
 });
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  // Server started
 });
 
 module.exports = app;

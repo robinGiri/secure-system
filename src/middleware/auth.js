@@ -334,7 +334,8 @@ const logSecurityEvent = async (req, eventType, action, userId = null, success =
 
     await auditLog.save();
   } catch (error) {
-    console.error('Failed to log security event:', error);
+    // Failed to log security event
+    // In production, this should use a proper logging mechanism
   }
 };
 

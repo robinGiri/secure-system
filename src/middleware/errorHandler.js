@@ -5,8 +5,14 @@ const errorHandler = (err, req, res, next) => {
   let error = { ...err };
   error.message = err.message;
 
-  // Log error
-  console.error(err);
+  // Log error through audit system
+  if (req.audit) {
+    auditLogger.error({
+      message: err.message,
+      stack: err.stack,
+      requestId: req.audit.requestId
+    });
+  }
 
   // Mongoose bad ObjectId
   if (err.name === 'CastError') {
@@ -61,8 +67,7 @@ const errorHandler = (err, req, res, next) => {
     method: req.method,
     url: req.originalUrl,
     ipAddress: req.ip,
-    userAgent: req.get('User-Agent'),
-    timestamp: new Date()
+    userAgent: req.get('User-Agent')
   });
 
   res.status(error.statusCode || 500).json({
