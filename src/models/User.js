@@ -84,8 +84,13 @@ const userSchema = new mongoose.Schema({
     used: {
       type: Boolean,
       default: false
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now
     }
   }],
+  lastMfaUpdate: Date,
   
   // Account Security
   isActive: {
@@ -103,12 +108,22 @@ const userSchema = new mongoose.Schema({
   passwordResetToken: String,
   passwordResetExpires: Date,
   
+  // Account Recovery
+  recoveryToken: String,
+  recoveryTokenExpires: Date,
+  
   // Login Attempts and Lockout
   loginAttempts: {
     type: Number,
     default: 0
   },
   lockUntil: Date,
+  lockReason: String,
+  consecutiveFailures: {
+    type: Number,
+    default: 0
+  },
+  lastFailedLogin: Date,
   
   // Session Management
   activeSessions: [{
@@ -284,19 +299,44 @@ userSchema.methods.incLoginAttempts = function() {
   if (this.lockUntil && this.lockUntil < Date.now()) {
     return this.updateOne({
       $unset: {
-        lockUntil: 1
+        lockUntil: 1,
+        lockReason: 1
       },
       $set: {
-        loginAttempts: 1
+        loginAttempts: 1,
+        consecutiveFailures: 1,
+        lastFailedLogin: new Date()
       }
     });
   }
   
-  const updates = { $inc: { loginAttempts: 1 } };
+  const updates = { 
+    $inc: { loginAttempts: 1, consecutiveFailures: 1 },
+    $set: { lastFailedLogin: new Date() }
+  };
   
-  // If we have max attempts and no lock, set lock
-  if (this.loginAttempts + 1 >= 5 && !this.isLocked) {
-    updates.$set = { lockUntil: Date.now() + 2 * 60 * 60 * 1000 }; // 2 hours
+  // Progressive lockout strategy
+  // 5 consecutive failures = 15 minute lockout
+  // 10 consecutive failures = 1 hour lockout
+  // 15 consecutive failures = 24 hour lockout
+  // 20+ consecutive failures = 7 day lockout
+  
+  if (!this.isLocked) {
+    const consecutiveFailures = (this.consecutiveFailures || 0) + 1;
+    
+    if (consecutiveFailures >= 20) {
+      updates.$set.lockUntil = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+      updates.$set.lockReason = 'Excessive login failures';
+    } else if (consecutiveFailures >= 15) {
+      updates.$set.lockUntil = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+      updates.$set.lockReason = 'Multiple login failures';
+    } else if (consecutiveFailures >= 10) {
+      updates.$set.lockUntil = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+      updates.$set.lockReason = 'Repeated login failures';
+    } else if (consecutiveFailures >= 5) {
+      updates.$set.lockUntil = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+      updates.$set.lockReason = 'Too many login failures';
+    }
   }
   
   return this.updateOne(updates);
@@ -305,9 +345,13 @@ userSchema.methods.incLoginAttempts = function() {
 // Reset login attempts
 userSchema.methods.resetLoginAttempts = function() {
   return this.updateOne({
+    $set: {
+      loginAttempts: 0,
+      consecutiveFailures: 0
+    },
     $unset: {
-      loginAttempts: 1,
-      lockUntil: 1
+      lockUntil: 1,
+      lockReason: 1
     }
   });
 };

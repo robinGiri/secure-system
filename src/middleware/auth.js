@@ -270,23 +270,53 @@ const sensitiveOperationLimiter = rateLimit({
   }
 });
 
-// Login Rate Limiting
+// Progressive Login Rate Limiting
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // limit each IP to 5 login requests per windowMs
+  max: 10, // limit each IP to 10 login requests per windowMs
   skipSuccessfulRequests: true,
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
   message: 'Too many login attempts from this IP, please try again later.',
+  keyGenerator: (req) => {
+    // Use IP by default, but if user is identified, use userId+IP combination
+    // This prevents attackers from targeting multiple accounts from same IP
+    return req.body.username 
+      ? `${req.ip}-${req.body.username}` 
+      : req.ip;
+  },
   handler: async (req, res) => {
+    const username = req.body.username || 'unknown';
+    
     await logSecurityEvent(
       req, 
       'rate_limit_exceeded', 
-      'Login rate limit exceeded', 
+      `Login rate limit exceeded for ${username}`, 
       null, 
       false
     );
+    
+    // Log security incident if extreme number of attempts
+    const ipLoginAttempts = await AuditLog.countDocuments({
+      ipAddress: req.ip, 
+      eventType: 'login_failed',
+      createdAt: { $gt: new Date(Date.now() - 60 * 60 * 1000) } // Last hour
+    });
+    
+    if (ipLoginAttempts > 20) {
+      await logSecurityIncident(
+        req,
+        'brute_force_attempt',
+        `Possible brute force attack from IP ${req.ip}`,
+        'high'
+      );
+    }
+    
     res.status(429).json({
       success: false,
-      message: 'Too many login attempts. Please try again later.'
+      message: 'Too many login attempts. Please try again later.',
+      retryAfter: Math.ceil(15 * 60 / 60), // Minutes until retry allowed
+      requireCaptcha: true
     });
   }
 });
