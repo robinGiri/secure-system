@@ -23,7 +23,7 @@ const transactionValidation = [
   body('type').isIn(['transfer', 'deposit', 'withdrawal', 'payment']).withMessage('Invalid transaction type'),
   body('amount').isFloat({ min: 0.01, max: 1000000 }).withMessage('Amount must be between $0.01 and $1,000,000'),
   body('description').optional().isLength({ max: 255 }).withMessage('Description must be less than 255 characters'),
-  body('toAccountNumber').optional().isLength({ min: 8, max: 20 }).withMessage('Invalid account number'),
+  body('toAccountNumber').optional().matches(/^ACC[0-9]+[A-Z0-9]+$/).withMessage('Invalid account number format'),
   body('authenticationMethod').isIn(['password', 'mfa', 'biometric']).withMessage('Invalid authentication method')
 ];
 

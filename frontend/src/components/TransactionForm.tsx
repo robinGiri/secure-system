@@ -151,14 +151,14 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
                 value={formData.toAccountNumber || ''}
                 onChange={(e) => handleChange('toAccountNumber', e.target.value)}
                 placeholder={formData.type === 'transfer' ? 'Enter recipient account number' : 'Enter payee account number'}
-                pattern="[0-9]{8,20}"
+                pattern="ACC[0-9]+[A-Z0-9]+"
                 required
               />
               <Form.Control.Feedback type="invalid">
-                Please enter a valid account number (8-20 digits).
+                Please enter a valid account number (e.g., ACC1234567890ABCD).
               </Form.Control.Feedback>
               <Form.Text className="text-muted">
-                Account number should be 8-20 digits long.
+                Account number format: ACC followed by numbers and letters.
               </Form.Text>
             </Form.Group>
           )}
