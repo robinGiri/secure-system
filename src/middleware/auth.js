@@ -221,8 +221,9 @@ const requireMFA = async (req, res, next) => {
       });
     }
 
-    // In development, allow bypass of MFA requirement
-    if (process.env.NODE_ENV === 'development' && process.env.BYPASS_MFA === 'true') {
+    // Bypass MFA in development mode if BYPASS_MFA is enabled
+    if (process.env.BYPASS_MFA === 'true') {
+      console.log('MFA bypassed due to BYPASS_MFA=true');
       return next();
     }
 

@@ -140,7 +140,8 @@ class TransactionService {
       receivingUser,
       req,
       stripePaymentIntent,
-      stripeTransferId
+      stripeTransferId,
+      securityVerification
     );
     
     // Log transaction securely
@@ -328,7 +329,7 @@ class TransactionService {
    * Create a transaction record with proper encryption
    * @private
    */
-  static async createTransactionRecord(transactionData, fromUser, toUser, req, stripePaymentIntent, stripeTransferId) {
+  static async createTransactionRecord(transactionData, fromUser, toUser, req, stripePaymentIntent, stripeTransferId, securityVerification = {}) {
     const { 
       type, 
       amount, 

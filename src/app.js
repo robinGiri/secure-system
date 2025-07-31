@@ -52,7 +52,9 @@ app.use(cors({
     process.env.FRONTEND_URL || 'http://localhost:3001',
     'http://localhost:3000',
     'http://127.0.0.1:3001',
-    'http://127.0.0.1:3000'
+    'http://127.0.0.1:3000',
+    'http://192.168.1.101:3001',
+    'http://192.168.1.101:3000',
   ],
   credentials: true,
   optionsSuccessStatus: 200
@@ -173,8 +175,9 @@ process.on('SIGTERM', () => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  // Server started
+const HOST = process.env.HOST || '0.0.0.0'; // Bind to all interfaces for external access
+app.listen(PORT, HOST, () => {
+  console.log(`Server running on ${HOST}:${PORT}`);
 });
 
 module.exports = app;

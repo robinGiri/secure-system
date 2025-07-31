@@ -160,7 +160,6 @@ const Register: React.FC = () => {
             </div>
           )}
 
-          <div className="form-row">
             <div className="form-group">
               <label htmlFor="firstName">First Name</label>
               <input
@@ -196,7 +195,6 @@ const Register: React.FC = () => {
                 <span className="field-error">{validationErrors.lastName}</span>
               )}
             </div>
-          </div>
 
           <div className="form-group">
             <label htmlFor="username">Username</label>
