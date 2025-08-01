@@ -4,8 +4,9 @@ const User = require('../models/User');
 const AuditLog = require('../models/AuditLog');
 const { 
   authenticateSession, 
-  authorize, 
-  requireOwnership,
+  requireRole,
+  requireOwnershipOrRole,
+  addUserPermissions,
   sensitiveOperationLimiter 
 } = require('../middleware/auth');
 const { asyncHandler } = require('../middleware/errorHandler');
@@ -14,19 +15,11 @@ const { logDataAccess } = require('../middleware/auditLogger');
 
 const router = express.Router();
 
-// Get specific user profile (for admins or user accessing their own)
-router.get('/profile/:userId', authenticateSession, asyncHandler(async (req, res) => {
+// Get specific user profile (for admins/managers or user accessing their own)
+router.get('/profile/:userId', authenticateSession, requireOwnershipOrRole('userId', ['admin', 'manager']), asyncHandler(async (req, res) => {
   const userId = req.params.userId;
   
-  // Check if user can access this profile
-  if (req.user.role !== 'admin' && req.user._id.toString() !== userId.toString()) {
-    await logSecurityEvent(req, 'authorization_failed', 'Attempted to access another user profile', req.user._id, false);
-    return res.status(403).json({
-      success: false,
-      message: 'Access denied'
-    });
-  }
-
+  // The ownership/role check is now handled by middleware
   const user = await User.findById(userId).select('-password -mfaSecret -passwordHistory');
   
   if (!user) {

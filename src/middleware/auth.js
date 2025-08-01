@@ -368,6 +368,16 @@ const logSecurityEvent = async (req, eventType, action, userId = null, success =
   }
 };
 
+// Import enhanced RBAC functionality
+const {
+  requireRole,
+  requirePermission,
+  requireOwnershipOrRole,
+  requireTransactionAccess,
+  addUserPermissions,
+  hasPermission: checkUserPermission
+} = require('./rbac');
+
 module.exports = {
   authenticateToken,
   authenticateSession,
@@ -378,5 +388,12 @@ module.exports = {
   sensitiveOperationLimiter,
   loginLimiter,
   ipWhitelist,
-  logSecurityEvent
+  logSecurityEvent,
+  // Enhanced RBAC exports
+  requireRole,
+  requirePermission,
+  requireOwnershipOrRole,
+  requireTransactionAccess,
+  addUserPermissions,
+  checkUserPermission
 };

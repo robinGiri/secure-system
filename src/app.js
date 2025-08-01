@@ -14,6 +14,7 @@ const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/user');
 const adminRoutes = require('./routes/admin');
 const transactionRoutes = require('./routes/transaction');
+const rolesRoutes = require('./routes/roles');
 
 // Import middleware
 const { auditLoggerMiddleware } = require('./middleware/auditLogger');
@@ -112,6 +113,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/transactions', transactionRoutes);
+app.use('/api/roles', rolesRoutes);
 
 // Default route
 app.get('/', (req, res) => {

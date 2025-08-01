@@ -5,7 +5,9 @@ const Transaction = require('../models/Transaction');
 const AuditLog = require('../models/AuditLog');
 const { 
   authenticateSession, 
-  authorize, 
+  requireRole,
+  requirePermission,
+  addUserPermissions,
   sensitiveOperationLimiter,
   ipWhitelist 
 } = require('../middleware/auth');
@@ -14,9 +16,10 @@ const { logSecurityEvent } = require('../middleware/auth');
 
 const router = express.Router();
 
-// All admin routes require admin role
+// All admin routes require authentication and admin role
 router.use(authenticateSession);
-router.use(authorize('admin'));
+router.use(requireRole('admin'));
+router.use(addUserPermissions);
 
 // Admin dashboard - system overview
 router.get('/dashboard', asyncHandler(async (req, res) => {
@@ -75,7 +78,7 @@ router.get('/dashboard', asyncHandler(async (req, res) => {
 }));
 
 // Get all users with pagination and filtering
-router.get('/users', asyncHandler(async (req, res) => {
+router.get('/users', requirePermission('users', 'read'), asyncHandler(async (req, res) => {
   const { 
     page = 1, 
     limit = 20, 
@@ -127,7 +130,7 @@ router.get('/users', asyncHandler(async (req, res) => {
 }));
 
 // Get specific user details
-router.get('/users/:userId', asyncHandler(async (req, res) => {
+router.get('/users/:userId', requirePermission('users', 'read'), asyncHandler(async (req, res) => {
   const { userId } = req.params;
 
   const user = await User.findById(userId).select('-password -mfaSecret -passwordHistory');
@@ -166,7 +169,7 @@ router.get('/users/:userId', asyncHandler(async (req, res) => {
 }));
 
 // Update user (admin only)
-router.put('/users/:userId', sensitiveOperationLimiter, [
+router.put('/users/:userId', requirePermission('users', 'update'), sensitiveOperationLimiter, [
   body('role').optional().isIn(['user', 'admin', 'manager', 'viewer']),
   body('isActive').optional().isBoolean(),
   body('balance').optional().isFloat({ min: 0 })

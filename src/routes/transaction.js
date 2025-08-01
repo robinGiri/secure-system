@@ -7,6 +7,9 @@ const Transaction = require('../models/Transaction');
 const AuditLog = require('../models/AuditLog');
 const { 
   authenticateSession, 
+  requireRole,
+  requireTransactionAccess,
+  requirePermission,
   requireMFA, 
   sensitiveOperationLimiter 
 } = require('../middleware/auth');
@@ -28,7 +31,7 @@ const transactionValidation = [
 ];
 
 // Get user transactions
-router.get('/', authenticateSession, asyncHandler(async (req, res) => {
+router.get('/', authenticateSession, requirePermission('transactions', 'read'), asyncHandler(async (req, res) => {
   const { 
     page = 1, 
     limit = 20, 
@@ -164,7 +167,7 @@ router.get('/:transactionId', authenticateSession, asyncHandler(async (req, res)
 const TransactionService = require('../services/transactionService');
 
 // Create new transaction with secure processing
-router.post('/', authenticateSession, requireMFA, sensitiveOperationLimiter, transactionValidation, asyncHandler(async (req, res) => {
+router.post('/', authenticateSession, requirePermission('transactions', 'create'), requireMFA, sensitiveOperationLimiter, transactionValidation, asyncHandler(async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({
