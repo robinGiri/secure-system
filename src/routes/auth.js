@@ -261,9 +261,9 @@ router.post('/login', loginLimiter, loginValidation, asyncHandler(async (req, re
 
   const { username, password, mfaToken, captchaToken } = req.body;
 
-  // Verify CAPTCHA token if required after suspicious activity
+  // Verify CAPTCHA token if required globally or after suspicious activity
   // This is a placeholder for actual CAPTCHA verification logic
-  const requireCaptcha = req.session.requireCaptcha;
+  const requireCaptcha = req.session.requireCaptcha || process.env.REQUIRE_CAPTCHA === 'true';
   if (requireCaptcha && !captchaToken) {
     await logSecurityEvent(req, 'login_failed', 'CAPTCHA required but not provided', null, false);
     return res.status(401).json({
@@ -1095,5 +1095,14 @@ router.post('/account-recovery', [
     userId: process.env.NODE_ENV === 'development' ? user._id : undefined
   });
 }));
+
+// Check if CAPTCHA is required for login
+router.get('/captcha-required', (req, res) => {
+  const requireCaptcha = req.session.requireCaptcha || process.env.REQUIRE_CAPTCHA === 'true';
+  res.json({
+    success: true,
+    requireCaptcha: requireCaptcha
+  });
+});
 
 module.exports = router;

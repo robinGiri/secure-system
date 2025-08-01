@@ -1,7 +1,8 @@
-import React, { useState, FormEvent } from 'react';
+import React, { useState, FormEvent, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import SimpleCaptcha from '../components/SimpleCaptcha';
+import axios from 'axios';
 import './Auth.css';
 
 const Login: React.FC = () => {
@@ -16,6 +17,22 @@ const Login: React.FC = () => {
   const [validationErrors, setValidationErrors] = useState<{[key: string]: string}>({});
   const [captchaToken, setCaptchaToken] = useState('');
   const [requireCaptcha, setRequireCaptcha] = useState(false);
+
+  // Check if CAPTCHA is required on component mount
+  useEffect(() => {
+    const checkCaptchaRequired = async () => {
+      try {
+        const response = await axios.get('/api/auth/captcha-required');
+        setRequireCaptcha(response.data.requireCaptcha);
+      } catch (error) {
+        console.error('Failed to check CAPTCHA requirement:', error);
+        // Default to requiring CAPTCHA on error for security
+        setRequireCaptcha(true);
+      }
+    };
+
+    checkCaptchaRequired();
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -49,8 +66,23 @@ const Login: React.FC = () => {
       errors.password = 'Password is required';
     }
 
+    if (requireCaptcha && !captchaToken) {
+      errors.captcha = 'Please complete the CAPTCHA verification';
+    }
+
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
+  };
+
+  const handleCaptchaVerify = (token: string) => {
+    setCaptchaToken(token);
+    // Clear captcha validation error when user completes CAPTCHA
+    if (validationErrors.captcha) {
+      setValidationErrors(prev => ({
+        ...prev,
+        captcha: ''
+      }));
+    }
   };
 
   const handleSubmit = async (e: FormEvent) => {
@@ -61,13 +93,23 @@ const Login: React.FC = () => {
     }
 
     try {
-      await login({
+      const loginData: any = {
         username: formData.username, // Backend accepts username or email in this field
         password: formData.password,
-      });
+      };
+
+      // Include CAPTCHA token if required
+      if (requireCaptcha && captchaToken) {
+        loginData.captchaToken = captchaToken;
+      }
+
+      await login(loginData);
       navigate('/dashboard');
-    } catch (error) {
-      // Error is handled by AuthContext
+    } catch (error: any) {
+      // If server indicates CAPTCHA is required, update state
+      if (error.response?.data?.requireCaptcha) {
+        setRequireCaptcha(true);
+      }
       console.error('Login failed:', error);
     }
   };
@@ -122,6 +164,16 @@ const Login: React.FC = () => {
               <span className="field-error">{validationErrors.password}</span>
             )}
           </div>
+
+          {/* CAPTCHA Component */}
+          <SimpleCaptcha 
+            onVerify={handleCaptchaVerify}
+            required={requireCaptcha}
+            className="mb-3"
+          />
+          {validationErrors.captcha && (
+            <div className="field-error mb-3">{validationErrors.captcha}</div>
+          )}
 
           <div className="form-actions">
             <button 

@@ -15,6 +15,8 @@ export interface User {
 export interface LoginRequest {
   username: string; // Backend accepts username or email in this field
   password: string;
+  captchaToken?: string; // Optional CAPTCHA token
+  mfaToken?: string; // Optional MFA token
 }
 
 export interface RegisterRequest {
